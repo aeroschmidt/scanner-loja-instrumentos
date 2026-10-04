@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101828">
+    <title>Som &amp; Corda | Instrumentos musicais</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/" aria-label="Som e Corda, início"><span class="brand-mark">♪</span> som<span>&amp;</span>corda</a>
+    <span class="top-note">Feito para quem vive de música</span>
+</header>
+<main class="layout">
+    <section class="intro">
+        <p class="eyebrow">CATÁLOGO DA LOJA</p>
+        <h1>Seu próximo som começa aqui.</h1>
+        <p>Instrumentos e acessórios selecionados para acompanhar cada ideia.</p>
+    </section>
+    <section class="inventory" aria-labelledby="inventory-title">
+        <div class="section-heading">
+            <div><p class="eyebrow">ESTOQUE</p><h2 id="inventory-title">Instrumentos disponíveis</h2></div>
+            <button class="primary-button" id="new-product" type="button">＋ Adicionar item</button>
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <div id="product-grid" class="product-grid" aria-live="polite"></div>
+    </section>
+</main>
+<dialog id="product-dialog">
+    <form id="product-form">
+        <div class="dialog-heading"><div><p class="eyebrow">CADASTRO</p><h2 id="dialog-title">Novo instrumento</h2></div><button class="icon-button" type="button" id="close-dialog" aria-label="Fechar">×</button></div>
+        <input type="hidden" id="product-id">
+        <label for="name">Nome</label><input id="name" name="name" required maxlength="120" placeholder="Ex.: Violão acústico">
+        <label for="category">Categoria</label><input id="category" name="category" required maxlength="60" placeholder="Ex.: Cordas">
+        <div class="form-row"><div><label for="price">Preço (R$)</label><input id="price" name="price" type="number" min="0" step="0.01" required></div><div><label for="stock">Unidades em estoque</label><input id="stock" name="stock" type="number" min="0" step="1" required></div></div>
+        <div class="dialog-actions"><button class="secondary-button" type="button" id="cancel-dialog">Cancelar</button><button class="primary-button" type="submit">Salvar item</button></div>
+    </form>
+</dialog>
+<footer>Som &amp; Corda <span>•</span> demonstração local de Java, Maven e SonarQube</footer>
+</body>
+</html>
