@@ -29,6 +29,11 @@ public class ProductRepository {
         return jdbcTemplate.query("SELECT id, name, category, price, stock FROM products ORDER BY name", PRODUCT_ROW_MAPPER);
     }
 
+    public List<Product> searchByName(String name) {
+        String sql = "SELECT id, name, category, price, stock FROM products WHERE name LIKE '%" + name + "%' ORDER BY name";
+        return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER);
+    }
+
     public Optional<Product> findById(long id) {
         return jdbcTemplate.query("SELECT id, name, category, price, stock FROM products WHERE id = ?", PRODUCT_ROW_MAPPER, id)
                 .stream().findFirst();
