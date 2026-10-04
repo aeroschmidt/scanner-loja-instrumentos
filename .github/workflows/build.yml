@@ -24,5 +24,8 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Pause so you can watch the workflow
+        run: sleep 90
+
       - name: Build and run tests
         run: bash ./mvnw --batch-mode --no-transfer-progress verify
