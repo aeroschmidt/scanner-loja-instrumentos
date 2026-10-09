@@ -52,11 +52,15 @@ O comando faz duas etapas no mesmo Maven build: `clean verify` recompila e execu
 - O JDK do projeto é 21 e a análise é executada depois do build, para fornecer os `.class` ao analisador Java.
 - Nenhum token, senha ou endereço de repositório GitHub está versionado.
 
-## Como a etapa de GitHub Actions se encaixará depois
+## GitHub Actions e SonarCloud
 
-GitHub Actions é o executor de CI: um workflow reage a push ou pull request, prepara JDK/Maven, compila e testa o checkout e chama o mesmo goal `sonar:sonar`. O scanner não é um serviço de Actions separado; ele é uma etapa do build Maven. A chave `SONAR_TOKEN` deve ser cadastrada como secret e injetada como variável de ambiente pelo workflow, nunca escrita no YAML.
+O workflow em `.github/workflows/build.yml` roda nos pushes para `main` e nos pull requests destinados a `main`. Ele prepara o Java 21 e executa `./mvnw --batch-mode --no-transfer-progress verify`; na configuração normal da `main`, em seguida também chama o scanner do SonarCloud usando o secret `SONAR_TOKEN`. O token é injetado pelo GitHub Actions e não deve ser escrito no YAML ou no código.
 
-Este projeto **ainda não tem workflow nem conexão GitHub**. Há uma diferença importante para o teste futuro: `localhost:9000` só aponta para a máquina que está executando o scanner. Um runner hospedado pelo GitHub não consegue alcançar o SonarQube que está apenas no computador local. Para analisar a partir de um runner GitHub, será preciso um SonarQube acessível por ele (por exemplo, servidor/rede acessível) ou um runner self-hosted na rede local. Vamos escolher e configurar esse caminho juntos na próxima etapa.
+Este PR é um teste temporário: seu diff remove apenas a chamada `sonar:sonar` e o uso do secret, mantendo o build e os testes Maven. Se essa alteração de workflow fosse mesclada, o Sonar deixaria de rodar nessa pipeline.
+
+## Próximos testes: GitHub Advanced Security (GHAS)
+
+Vamos estudar e testar separadamente algumas ferramentas do GHAS em pull requests: o Dependabot para alertas e atualizações de dependências, o Code Scanning com CodeQL e o Secret Scanning. A ideia é observar o que cada recurso detecta e como seus resultados aparecem no GitHub. A configuração e a ativação serão tratadas em etapas próprias.
 
 ## API
 
