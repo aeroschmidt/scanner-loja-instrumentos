@@ -141,5 +141,6 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 
 - O PR #7 remove a execução do Sonar do workflow e mantém Maven `verify`.
 - O workflow usa os eventos `push` para `main` e `pull_request` para `main`.
+- Após a atualização deste guia, a execução [#21 do Actions](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38094010130) passou em 27 segundos no evento `pull_request`.
 - As ferramentas de GHAS continuam desligadas conforme o escopo acordado.
 - A proprietária revisa e aprova PRs. O assistente não aprova nem mescla.
