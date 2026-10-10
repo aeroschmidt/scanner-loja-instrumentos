@@ -52,27 +52,36 @@ O comando faz duas etapas no mesmo Maven build: `clean verify` recompila e execu
 - O JDK do projeto é 21 e a análise é executada depois do build, para fornecer os `.class` ao analisador Java.
 - Nenhum token, senha ou endereço de repositório GitHub está versionado.
 
-## GitHub Actions e SonarQube Cloud
+## GitHub Actions e segurança do repositório
 
 ### Como está funcionando
 
-O workflow em `.github/workflows/build.yml` já está configurado e é executado em pushes para `main` e em pull requests destinados a `main`. Ele usa um runner hospedado pelo GitHub, prepara o Java 21 e executa o Maven Wrapper para compilar, testar e enviar a análise ao SonarQube Cloud. O segredo `SONAR_TOKEN` fica nas configurações do repositório e é fornecido ao job como variável de ambiente; ele não deve ser escrito no YAML nem no código.
+O workflow em `.github/workflows/build.yml` é executado em pushes para `main` e em pull requests destinados a `main`. Ele usa um runner hospedado pelo GitHub, prepara o Java 21 e executa `./mvnw verify` para compilar e testar o projeto. Nesta etapa de aprendizado, o workflow não chama o SonarQube Cloud e não usa `SONAR_TOKEN`.
 
-As ferramentas têm papéis diferentes: o GitHub Actions reage aos eventos e organiza a execução; o Maven compila e roda os testes; o scanner envia os resultados ao SonarQube Cloud, que calcula as análises e o Quality Gate. O check de build e o resultado do Sonar aparecem no pull request. O Quality Gate informa se as condições de qualidade configuradas foram atendidas; torná-lo obrigatório para mesclar depende das regras de proteção da branch.
+O GitHub Actions reage aos eventos e organiza a execução; o Maven compila e roda os testes. O check de build aparece no pull request. A análise do Sonar foi temporariamente removida do workflow para observar primeiro os checks nativos do GitHub sem misturá-los com o Quality Gate. A integração local com SonarQube continua documentada na seção anterior.
 
-Já conectamos o repositório ao SonarQube Cloud e acompanhamos análises em pull requests. Também observamos um Quality Gate falhar no teste de segurança e verificamos a análise depois da correção.
+O repositório já foi conectado ao SonarQube Cloud e análises anteriores em pull requests mostraram o Quality Gate. Esses resultados são parte do histórico; o workflow desta etapa não envia análises ao Sonar.
 
-O PR #6 foi um teste temporário sem a chamada do Sonar: foi fechado sem merge. Por isso, ele não alterou a `main`, que continua com Maven e SonarQube Cloud no workflow. O check “Build and test with Maven” visto naquele PR era o build/teste do Maven, não a análise do Sonar.
+O PR #6 foi um teste temporário sem a chamada do Sonar e foi fechado sem merge. A remoção atual está sendo preparada no PR #7. Depois que você revisar e aprovar, o merge poderá atualizar a `main`.
+
+### Estado dos recursos de segurança
+
+Neste momento, CodeQL/Code Scanning, Dependabot e Secret Protection estão desligados no repositório. A configuração observada em **Settings > Advanced Security** também mostra o Dependency graph desligado. Em repositórios públicos, a detecção de padrões de segredos para alertar provedores parceiros pode ocorrer automaticamente mesmo quando o Secret Protection e os alertas para o proprietário estão desligados; consulte a documentação oficial antes de interpretar isso como ausência absoluta de detecção.
+
+Copilot Autofix aparece ligado nas configurações, mas depende de alertas do CodeQL para sugerir correções e não substitui uma análise ativa. Não o alteramos nesta etapa.
+
+O estado observado e o procedimento para ativar cada recurso separadamente estão no [Guia de GitHub Actions e segurança](docs/guia-github-actions-e-seguranca.docx). A inclusão das capturas como imagens no guia fica pendente para a próxima revisão documental.
 
 ### Próximos passos de estudo
 
 Vamos aprender uma coisa por vez, observando o que cada check faz antes de ativar a próxima ferramenta:
 
-1. Entender melhor o workflow existente: eventos (`push` e `pull_request`), jobs, steps, logs e checks no GitHub Actions.
-2. Quando decidido, estudar o Dependabot em um PR de teste para comparar o fluxo com e sem ele.
-3. Depois, avaliar separadamente Code Scanning com CodeQL e Secret Scanning, verificando primeiro o que está disponível e o que cada recurso exige.
+1. Revisar e aprovar o PR #7 manualmente; nenhum PR deve ser aprovado ou mesclado pelo assistente.
+2. Entender o workflow atual: eventos (`push` e `pull_request`), jobs, steps, logs e checks no GitHub Actions.
+3. Quando decidido, habilitar e estudar o Dependabot em um PR de teste; depois avaliar separadamente Code Scanning com CodeQL e Secret Scanning.
+4. Reintroduzir Sonar somente quando solicitado, para observar a interação com os checks do GitHub.
 
-Dependabot, CodeQL e Secret Scanning **não são ativados por esta documentação**. O CircleCI também não faz parte do workflow atual; repetir nele o mesmo build do GitHub Actions seria redundante, então só será explorado se houver um motivo ou pedido específico.
+Este README e o guia documentam os recursos, mas não ativam Dependabot, CodeQL nem Secret Protection. O CircleCI também não faz parte do workflow atual; só será explorado se houver um motivo ou pedido específico.
 
 ## API
 
