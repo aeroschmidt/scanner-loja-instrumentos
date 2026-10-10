@@ -52,11 +52,27 @@ O comando faz duas etapas no mesmo Maven build: `clean verify` recompila e execu
 - O JDK do projeto é 21 e a análise é executada depois do build, para fornecer os `.class` ao analisador Java.
 - Nenhum token, senha ou endereço de repositório GitHub está versionado.
 
-## Como a etapa de GitHub Actions se encaixará depois
+## GitHub Actions e SonarQube Cloud
 
-GitHub Actions é o executor de CI: um workflow reage a push ou pull request, prepara JDK/Maven, compila e testa o checkout e chama o mesmo goal `sonar:sonar`. O scanner não é um serviço de Actions separado; ele é uma etapa do build Maven. A chave `SONAR_TOKEN` deve ser cadastrada como secret e injetada como variável de ambiente pelo workflow, nunca escrita no YAML.
+### Como está funcionando
 
-Este projeto **ainda não tem workflow nem conexão GitHub**. Há uma diferença importante para o teste futuro: `localhost:9000` só aponta para a máquina que está executando o scanner. Um runner hospedado pelo GitHub não consegue alcançar o SonarQube que está apenas no computador local. Para analisar a partir de um runner GitHub, será preciso um SonarQube acessível por ele (por exemplo, servidor/rede acessível) ou um runner self-hosted na rede local. Vamos escolher e configurar esse caminho juntos na próxima etapa.
+O workflow em `.github/workflows/build.yml` já está configurado e é executado em pushes para `main` e em pull requests destinados a `main`. Ele usa um runner hospedado pelo GitHub, prepara o Java 21 e executa o Maven Wrapper para compilar, testar e enviar a análise ao SonarQube Cloud. O segredo `SONAR_TOKEN` fica nas configurações do repositório e é fornecido ao job como variável de ambiente; ele não deve ser escrito no YAML nem no código.
+
+As ferramentas têm papéis diferentes: o GitHub Actions reage aos eventos e organiza a execução; o Maven compila e roda os testes; o scanner envia os resultados ao SonarQube Cloud, que calcula as análises e o Quality Gate. O check de build e o resultado do Sonar aparecem no pull request. O Quality Gate informa se as condições de qualidade configuradas foram atendidas; torná-lo obrigatório para mesclar depende das regras de proteção da branch.
+
+Já conectamos o repositório ao SonarQube Cloud e acompanhamos análises em pull requests. Também observamos um Quality Gate falhar no teste de segurança e verificamos a análise depois da correção.
+
+O PR #6 foi um teste temporário sem a chamada do Sonar: foi fechado sem merge. Por isso, ele não alterou a `main`, que continua com Maven e SonarQube Cloud no workflow. O check “Build and test with Maven” visto naquele PR era o build/teste do Maven, não a análise do Sonar.
+
+### Próximos passos de estudo
+
+Vamos aprender uma coisa por vez, observando o que cada check faz antes de ativar a próxima ferramenta:
+
+1. Entender melhor o workflow existente: eventos (`push` e `pull_request`), jobs, steps, logs e checks no GitHub Actions.
+2. Quando decidido, estudar o Dependabot em um PR de teste para comparar o fluxo com e sem ele.
+3. Depois, avaliar separadamente Code Scanning com CodeQL e Secret Scanning, verificando primeiro o que está disponível e o que cada recurso exige.
+
+Dependabot, CodeQL e Secret Scanning **não são ativados por esta documentação**. O CircleCI também não faz parte do workflow atual; repetir nele o mesmo build do GitHub Actions seria redundante, então só será explorado se houver um motivo ou pedido específico.
 
 ## API
 
