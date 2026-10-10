@@ -62,7 +62,11 @@ O GitHub Actions reage aos eventos e organiza a execução; o Maven compila e ro
 
 O repositório já foi conectado ao SonarQube Cloud e análises anteriores em pull requests mostraram o Quality Gate. Esses resultados são parte do histórico; o workflow desta etapa não envia análises ao Sonar.
 
-O PR #6 foi um teste temporário sem a chamada do Sonar e foi fechado sem merge. A remoção atual está sendo preparada no PR #7. Depois que você revisar e aprovar, o merge poderá atualizar a `main`.
+O PR #6 foi um teste temporário sem a chamada do Sonar e foi fechado sem merge. A remoção da chamada do Sonar foi revisada e incorporada à `main` pelo PR #7.
+
+### PR de referência sem Code Scanning
+
+Para observar um PR comum antes de ativar Code Scanning, o workflow atual executa somente o job **Build and test with Maven**: prepara o Java 21 e roda `./mvnw verify`. A configuração do CodeQL está desligada em **Settings > Advanced Security**, e não há workflow do CodeQL em `.github/workflows/`. Portanto, este PR deve mostrar o check de build/teste do GitHub Actions, sem check de CodeQL. A aprovação e o merge continuam sob responsabilidade da mantenedora do repositório.
 
 ### Estado dos recursos de segurança
 
