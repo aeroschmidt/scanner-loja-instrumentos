@@ -30,10 +30,9 @@ public class ProductRepository {
     }
 
     public List<Product> searchByName(String name) {
-        return jdbcTemplate.query(
-                "SELECT id, name, category, price, stock FROM products WHERE name LIKE ? ORDER BY name",
-                PRODUCT_ROW_MAPPER,
-                "%" + name + "%");
+        // Vulnerabilidade intencional para testar a análise do SonarCloud; não mesclar sem corrigir.
+        String sql = "SELECT id, name, category, price, stock FROM products WHERE name LIKE '%" + name + "%' ORDER BY name";
+        return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER);
     }
 
     public Optional<Product> findById(long id) {
