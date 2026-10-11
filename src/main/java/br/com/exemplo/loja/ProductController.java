@@ -34,6 +34,11 @@ public class ProductController {
         return repository.searchByName(name);
     }
 
+    @GetMapping("/demo/sql-injection")
+    public List<Product> demonstrateSqlInjection(@RequestParam String name) {
+        return repository.searchByNameForSqlInjectionDemo(name);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Product> findById(@PathVariable long id) {
         return repository.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
