@@ -1,13 +1,17 @@
 from pathlib import Path
 import re
+import sys
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
 
 root = Path(__file__).parent
-source = root / "guia-github-actions-e-seguranca.md"
-target = root / "guia-github-actions-e-seguranca.docx"
+if len(sys.argv) != 3:
+    raise SystemExit("Usage: _build_guide.py <source.md> <target.docx>")
+source = root / sys.argv[1]
+target = root / sys.argv[2]
+
 lines = source.read_text(encoding="utf-8").splitlines()
 doc = Document()
 sec = doc.sections[0]
@@ -26,11 +30,11 @@ for sty, size, color in [("Title", 23, "14365D"), ("Heading 1", 16, "14365D"), (
     styles[sty].font.color.rgb = RGBColor.from_string(color)
 
 header = sec.header.paragraphs[0]
-header.text = "SOM & CORDA  |  GUIA OPERACIONAL"
+header.text = "GUIA DO USUÁRIO  |  PULL REQUESTS E VERIFICAÇÕES"
 header.style = "Caption"
 header.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 footer = sec.footer.paragraphs[0]
-footer.text = "Trilha de aprendizado • Atualizado em 10/10/2026"
+footer.text = "Fluxo de contribuição e verificações de segurança no GitHub"
 footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 def add_runs(p, text):
@@ -130,8 +134,8 @@ while i < len(lines):
         add_runs(p, line)
     i += 1
 
-doc.core_properties.title = "GitHub Actions e segurança do repositório"
-doc.core_properties.subject = "Passos para administradores e participantes de PRs"
-doc.core_properties.author = "Som & Corda"
+doc.core_properties.title = lines[0].removeprefix("# ")
+doc.core_properties.subject = "Orientação para autoria e revisão de pull requests"
+doc.core_properties.author = "Documentação operacional"
 doc.save(target)
 print(target)

@@ -1,10 +1,10 @@
-# Guia prático: GitHub Actions e segurança do repositório
+# Guia da mantenedora para GitHub Actions e GHAS
 
 **Projeto:** Som & Corda — loja de instrumentos  
 **Repositório:** `aeroschmidt/scanner-loja-instrumentos`  
-**Registro de estado:** 10 de outubro de 2026
+**Atualizado:** 10 de outubro de 2026
 
-Este guia registra o que está ativo, o que ainda está desligado e como cada participante acompanha os testes. A sequência será uma ferramenta por vez. Nenhuma ferramenta de GHAS é habilitada por este documento.
+Este arquivo é para quem administra o repositório: registra o estado das ferramentas, onde habilitá-las e a ordem acordada dos testes. As instruções para autores e revisores de PR estão em [Guia de PRs para usuários](guia-usuario-prs.md).
 
 ## 1. Estado atual do projeto
 
@@ -35,14 +35,14 @@ Este guia registra o que está ativo, o que ainda está desligado e como cada pa
 
 ![Actions: workflow Maven concluído com sucesso](capturas/03-actions-run-success.jpg)
 
-## 2. Para quem administra o repositório
+## 2. Configuração para a mantenedora
 
 ### A. Entender o GitHub Actions que já existe
 
 1. Abra o repositório e selecione **Actions** (a execução bem-sucedida está na Captura 4).
 2. Abra uma execução do workflow **Build and test**.
 3. Confira o evento que iniciou a execução (`push` ou `pull_request`), o job e seus steps.
-4. Abra **Build, test, and analyze with SonarQube** apenas em execuções históricas; no workflow atual, o step executa `./mvnw --batch-mode --no-transfer-progress verify`.
+4. Abra o job **Build and test with Maven** e expanda os steps para acompanhar cada etapa; o comando Maven executado é `./mvnw --batch-mode --no-transfer-progress verify`.
 5. Em `build.yml`, identifique os gatilhos, o runner, a preparação do Java, o cache Maven e o comando de build. A execução recente registrada concluiu com sucesso.
 
 O Actions coordena o workflow; Maven compila o projeto e roda os testes. Um check de Actions não significa que CodeQL, Dependabot ou Secret Scanning estejam ativos.
@@ -88,35 +88,7 @@ Regras e disponibilidade de funcionalidades dependem de visibilidade e plano do 
 
 Quando Dependabot, CodeQL e Secret Scanning tiverem sido testados e registrados, a última etapa será reintroduzir Sonar no workflow. Então poderemos comparar checks nativos do GitHub com a análise e o Quality Gate do Sonar. Até lá, o workflow não usa `SONAR_TOKEN`.
 
-## 3. Para quem cria ou revisa PRs
-
-### PR comum com Actions
-
-1. Crie uma branch e faça commits assinados conforme a configuração do repositório.
-2. Abra um PR para `main` e explique a mudança.
-3. Em **Checks**, aguarde **Build and test / Build and test with Maven**.
-4. Se falhar, abra o job, expanda o step vermelho e use o log para localizar o erro de compilação/teste.
-5. Aguarde a revisão e aprovação da proprietária. O assistente não aprova nem faz merge de PRs.
-
-### PR quando Code Scanning estiver habilitado
-
-1. Consulte o check de Code Scanning no PR junto com o build Maven.
-2. Abra cada alerta para ver a regra, severidade, arquivo e linha indicados.
-3. Corrija no código e envie um novo commit; confirme se a nova análise atualizou ou fechou o alerta.
-4. Trate os checks como sinais para revisão. O bloqueio de merge depende da regra de branch configurada pela administração.
-
-### PR automático do Dependabot
-
-1. Confira no diff quais dependências e versões foram alteradas.
-2. Leia a descrição do alerta/atualização e examine os checks do PR.
-3. Revise compatibilidade e testes como em qualquer PR. Um PR do bot não deve ser aprovado automaticamente neste exercício.
-4. Somente a proprietária aprova e faz merge.
-
-### Push protection
-
-Se um push for bloqueado por uma possível credencial, não contorne o bloqueio com um segredo real. Remova o valor do código/histórico conforme o caso, use um armazenamento seguro para credenciais e siga o procedimento da organização.
-
-## 4. Sequência e registro de aprendizado
+## 3. Sequência e registro de aprendizado
 
 1. Aprender o workflow de Actions já ativo.
 2. Testar Dependabot isoladamente.
@@ -127,7 +99,7 @@ Se um push for bloqueado por uma possível credencial, não contorne o bloqueio 
 
 Cada ativação é uma decisão separada da proprietária. Registre para cada sessão: data, configuração alterada, estado anterior/novo, URL da execução ou PR, resultado observado e captura da tela.
 
-## 5. Documentação oficial
+## 4. Documentação oficial
 
 - [Configurar Dependabot alerts](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-dependabot-alerts)
 - [Configurar atualizações de versão do Dependabot](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates)
@@ -137,10 +109,19 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 - [Habilitar Push protection](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/prevent-future-leaks/enable-push-protection)
 - [Quickstart de segurança do GitHub](https://docs.github.com/en/code-security/getting-started/quickstart-for-securing-your-repository)
 
-## 6. Histórico desta trilha
+## 5. Histórico desta trilha
 
 - O PR #7 remove a execução do Sonar do workflow e mantém Maven `verify`.
 - O workflow usa os eventos `push` para `main` e `pull_request` para `main`.
 - Após a atualização deste guia, a execução [#21 do Actions](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38094010130) passou em 27 segundos no evento `pull_request`.
 - As ferramentas de GHAS continuam desligadas conforme o escopo acordado.
 - A proprietária revisa e aprova PRs. O assistente não aprova nem mescla.
+
+## 6. Estado do PR de demonstração #9
+
+- O PR [Demonstração controlada de SQL Injection](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9) continua aberto para a mantenedora revisar.
+- CodeQL / Code Scanning permanece desligado; o check que passou é o build/teste Maven. A execução após a atualização da documentação também passou em 22 segundos: [Actions run](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38098135806).
+- A vulnerabilidade foi introduzida de propósito somente para o exercício. Não aprove nem mescle enquanto esse código estiver presente.
+- Os três commits aparecem como `Verified` no GitHub. A mantenedora decide a aprovação e o merge.
+- O guia separado para autores e revisores explica os trechos antes/depois e o que observar quando Code Scanning for habilitado.
+
