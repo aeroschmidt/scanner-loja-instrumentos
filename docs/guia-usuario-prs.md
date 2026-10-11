@@ -194,7 +194,7 @@ No PR de laboratório, a SQL continua concatenando a entrada recebida. O alerta 
 
 ![Formulário de dismiss: quatro razões disponíveis; nenhuma foi selecionada ou enviada](capturas/pr10-dismiss-reasons.jpg)
 
-![PR #10: CodeQL e Maven concluídos com sucesso na revisão mais recente](capturas/pr10-checks-final.jpg)
+![PR #10: CodeQL e Maven concluídos com sucesso na execução do commit d4ad0e1, antes desta atualização documental](capturas/pr10-checks-final.jpg)
 
 O botão de dismiss é diferente de um bloqueio de merge. Se a equipe quiser restringir quem pode dispensar alertas, a mantenedora pode habilitar **delegated alert dismissal**. Nesse modelo, pessoas com acesso de escrita solicitam o descarte; proprietários da organização e security managers analisam a solicitação. A regra e o check exigido pela branch continuam sendo configurados separadamente.
 
