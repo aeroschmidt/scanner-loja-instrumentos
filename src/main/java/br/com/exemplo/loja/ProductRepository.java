@@ -36,6 +36,12 @@ public class ProductRepository {
                 "%" + name + "%");
     }
 
+    // Intentional SQL injection used only to demonstrate Code Scanning in a test PR.
+    public List<Product> searchByNameForSqlInjectionDemo(String name) {
+        String sql = "SELECT id, name, category, price, stock FROM products WHERE name LIKE '%" + name + "%' ORDER BY name";
+        return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER);
+    }
+
     public Optional<Product> findById(long id) {
         return jdbcTemplate.query("SELECT id, name, category, price, stock FROM products WHERE id = ?", PRODUCT_ROW_MAPPER, id)
                 .stream().findFirst();
