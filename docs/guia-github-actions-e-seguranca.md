@@ -66,13 +66,13 @@ Fluxo de administração, quando a proprietária decidir iniciar este teste:
 ### C. Code Scanning com CodeQL — Advanced setup
 
 1. Em **Settings > Advanced Security > Code Security > CodeQL analysis**, a mantenedora desativou Default setup e selecionou Advanced setup.
-2. O GitHub criou `.github/workflows/codeql.yml` na branch `main` (commit `0087afb`). A lista de Actions passou a exibir **CodeQL Advanced**; a execução inicial `#1` terminou com sucesso em 1 min 44 s: [ver execução](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38104871050).
+2. O GitHub criou `.github/workflows/codeql.yml` na branch `main` (commit `0087afb`). A lista de Actions passou a exibir **CodeQL Advanced**; a execução inicial `#1` terminou com sucesso em 1 min 44 s: [ver execução](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38104871050). A página do run mostra três jobs, todos concluídos.
 3. O workflow usa `push` para `main`, `pull_request` destinado a `main` e uma agenda semanal (`cron: '20 3 * * 2'`, terça-feira às 03:20 UTC, 00:20 no horário de Brasília).
 4. O matrix analisa `actions`, `java-kotlin` e `javascript-typescript`, detectadas para este repositório. O modo `none` para Java cria a base sem executar o Maven e é suportado; `autobuild` ou `manual` podem ser avaliados se for necessário analisar código gerado ou restringir a análise ao que o build compila.
 5. O workflow concede `security-events: write` para publicar resultados e permissões de leitura para obter o código e actions. Não há token Sonar nem integração com Sonar neste workflow.
 6. Para verificar o resultado, abra **Actions > CodeQL Advanced**, selecione uma execução e confira as análises por linguagem. No PR, consulte **Checks** e **Security**; o check pode terminar verde mesmo quando há alerta. Para bloquear merge, configure uma regra de proteção que exija o check apropriado.
 
-O workflow é configuração versionada: gatilhos, linguagens, permissões, versões de actions e estratégia de build podem ser revistos no diff do PR. A execução inicial na `main` comprova que o workflow avançado executou; a execução seguinte em PR permite observar os resultados da branch desse PR.
+O workflow é configuração versionada: gatilhos, linguagens, permissões, versões de actions e estratégia de build podem ser revistos no diff do PR. Após um commit de documentação sincronizar o PR #10, a execução **CodeQL Advanced #2** rodou em `pull_request` e concluiu os três jobs em 1 min 11 s: [ver execução](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38105212367). O Code Scanning publicou um alerta novo High na linha 42 de `ProductRepository.java`; como a configuração de check falha para High ou superior, o check agregado **Code scanning results** ficou vermelho. A execução do workflow está verde, o check que resume alertas está vermelho e o PR ainda aparece como apto a merge: a equipe precisa configurar regra de proteção se quiser transformar esse check em bloqueio.
 
 ### D. Secret Scanning — etapa separada
 
@@ -157,4 +157,5 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 - Após a atualização deste guia, a execução [#21 do Actions](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38094010130) passou em 27 segundos no evento `pull_request`.
 - Code Scanning/CodeQL está ativo via Advanced setup; Dependabot e Secret Protection continuam desligados conforme o escopo.
 - Execução inicial do workflow avançado: [CodeQL Advanced #1](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38104871050), concluída com sucesso em 10/10/2026.
+- Execução no PR #10: [CodeQL Advanced #2](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38105212367), três jobs concluídos; [resumo do check e anotação na linha 42](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/10/checks?check_run_id=114369258145).
 - A proprietária revisa e aprova PRs. O assistente não aprova nem mescla.
