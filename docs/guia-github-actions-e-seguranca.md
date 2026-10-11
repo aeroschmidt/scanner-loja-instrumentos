@@ -42,7 +42,7 @@ Este guia registra o que está ativo, o que ainda está desligado e como cada pa
 1. Abra o repositório e selecione **Actions** (a execução bem-sucedida está na Captura 4).
 2. Abra uma execução do workflow **Build and test**.
 3. Confira o evento que iniciou a execução (`push` ou `pull_request`), o job e seus steps.
-4. Abra **Build, test, and analyze with SonarQube** apenas em execuções históricas; no workflow atual, o step executa `./mvnw --batch-mode --no-transfer-progress verify`.
+4. Abra o job **Build and test with Maven** e expanda os steps para acompanhar cada etapa; o comando Maven executado é `./mvnw --batch-mode --no-transfer-progress verify`.
 5. Em `build.yml`, identifique os gatilhos, o runner, a preparação do Java, o cache Maven e o comando de build. A execução recente registrada concluiu com sucesso.
 
 O Actions coordena o workflow; Maven compila o projeto e roda os testes. Um check de Actions não significa que CodeQL, Dependabot ou Secret Scanning estejam ativos.
@@ -144,3 +144,31 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 - Após a atualização deste guia, a execução [#21 do Actions](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38094010130) passou em 27 segundos no evento `pull_request`.
 - As ferramentas de GHAS continuam desligadas conforme o escopo acordado.
 - A proprietária revisa e aprova PRs. O assistente não aprova nem mescla.
+
+## 7. Demonstração: PR #9 com Code Scanning desligado
+
+**PR:** [Demonstração controlada de SQL Injection](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9)
+**Branch:** `demo/vulnerabilidade-sql-sem-code-scanning`
+**Commit:** `32da6b1` — mensagem assinada e verificada pelo GitHub.
+
+Este PR foi criado para comparar a compilação do Actions com a análise de segurança do CodeQL. Ele adiciona uma rota isolada de demonstração que monta uma consulta SQL concatenando a entrada `name`. A rota comum de busca continua usando consulta parametrizada. O código vulnerável existe apenas para o exercício e não deve ser mesclado nem usado em produção.
+
+### Resultado observado
+
+- O workflow **Build and test with Maven** concluiu com sucesso no PR. Isso confirma que o projeto compilou e que os testes executados por Maven passaram; não confirma que o código é seguro.
+- O CodeQL / Code Scanning permaneceu desligado, conforme solicitado. Por isso, o GitHub não executou a análise CodeQL e não mostrou alerta de vulnerabilidade nesse PR.
+- A ausência do alerta é esperada porque o analisador estava desligado. Não é evidência de que o código vulnerável tenha passado por uma análise estática.
+- Não há reviewer atribuído: a revisão está pendente da mantenedora. Dependabot não é revisor humano; quando habilitado, pode abrir PRs de dependências, que ainda precisam de revisão.
+- A mantenedora decide se aprova e mescla. O assistente não aprova nem mescla PRs.
+
+**Evidências no GitHub:** [conversa e descrição do PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9), [checks do PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9/checks) e [execução do Actions #25](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38097282398). A Captura 4 é uma execução anterior do workflow, no PR #7; use os links do PR #9 para ver o resultado desta demonstração.
+
+### Como ler este PR
+
+1. Na conversa, leia **Objetivo**, **Alteração**, **O que observar** e **Revisão** antes de olhar os checks.
+2. Em **Checks**, confirme que o job do Maven terminou com sucesso. Um check verde quer dizer que aquele job passou, dentro do que ele executa.
+3. Compare a lista de checks com o que está habilitado em **Settings > Advanced Security**. Como CodeQL está desligado, não espere check nem alerta Code Scanning.
+4. Em **Files changed**, identifique a rota de demonstração e confirme que a busca normal permanece parametrizada.
+5. Não aprove nem mescle este PR enquanto a rota vulnerável estiver presente. A mantenedora deve decidir o próximo passo do exercício.
+
+**Nota sobre a branch:** o nome atual identifica que este é um exercício isolado e que Code Scanning está desligado. Mantivemos a branch para preservar o PR #9 aberto e seus checks; a tentativa de renomeá-la pelo GitHub avisou que fecharia o PR.
