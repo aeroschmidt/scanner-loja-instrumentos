@@ -26,5 +26,7 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Build and test with Maven
-        run: bash ./mvnw --batch-mode --no-transfer-progress verify
+      - name: Build, test, and analyze with SonarQube Cloud
+        run: bash ./mvnw --batch-mode --no-transfer-progress verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
