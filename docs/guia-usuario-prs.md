@@ -1,81 +1,133 @@
-# Guia de PRs para usuários
+# Guia do usuário para Pull Requests e verificações de segurança
 
-**Projeto:** Som & Corda — loja de instrumentos  
-**Repositório:** `aeroschmidt/scanner-loja-instrumentos`  
-**Atualizado:** 10 de outubro de 2026
+Este guia explica como autores e revisores de código acompanham um Pull Request (PR) no GitHub quando há verificações automáticas. Ele ajuda a interpretar resultados do GitHub Actions e do GitHub Advanced Security (GHAS), responder a alertas e decidir o que precisa de revisão humana. O administrador do repositório configura as ferramentas; as instruções de configuração ficam no [guia da mantenedora](guia-maintainer-ghas.md).
 
-Este guia é para quem abre, revisa ou acompanha Pull Requests. Ele mostra o que o GitHub Actions verifica hoje, o que procurar quando Code Scanning estiver ativo e como interpretar a demonstração do PR #9. Configurações administrativas ficam no [guia da mantenedora](guia-maintainer-ghas.md).
+Um check verde significa que aquela verificação terminou com sucesso. Isso não prova, por si só, que o código está livre de defeitos ou seguro. Alertas de segurança e bloqueios de merge também são coisas diferentes: o alerta aponta um achado; a regra de proteção da branch define se o merge fica impedido até a resolução.
 
-**Estado deste exercício:** GitHub Actions está ativo. CodeQL / Code Scanning, Dependabot e Secret Scanning estão desligados; por isso, a demonstração não recebeu análise CodeQL.
+## 1. Quem faz o quê
 
-## 1. Fluxos de Pull Request
+- **Autor do PR:** descreve a mudança, acompanha os checks, corrige falhas e responde às observações da revisão.
+- **Revisor:** entende o objetivo e o diff, verifica os resultados automáticos e pede ajustes quando necessário.
+- **Administrador do repositório:** habilita e configura workflows, ferramentas de segurança e regras de proteção. Consulte o guia da mantenedora para essas tarefas.
+- **Bots:** podem executar análises ou propor atualizações. Um resultado automático não substitui a revisão e aprovação previstas pelo processo da equipe.
 
-### PR comum com GitHub Actions
+## 2. Fluxo normal de um Pull Request
 
-1. Crie uma branch e faça commits assinados conforme a configuração do repositório.
-2. Abra um PR para `main` e explique a mudança.
-3. Em **Checks**, aguarde **Build and test / Build and test with Maven**.
-4. Se falhar, abra o job, expanda o step vermelho e use o log para localizar o erro de compilação/teste.
-5. Aguarde a revisão e aprovação da proprietária. O assistente não aprova nem faz merge de PRs.
+1. Crie uma branch para a mudança e mantenha cada PR focado em um objetivo.
+2. Abra o PR para a branch de destino indicada pela equipe. Explique o motivo, o que mudou, como foi verificado e quais riscos merecem atenção.
+3. Aguarde os checks na área **Checks** ou na seção de status do PR. Enquanto estiverem em execução, espere a conclusão antes de interpretar o resultado.
+4. Se um check falhar, abra o detalhe do job, localize a etapa marcada como falha e leia o log a partir da primeira mensagem de erro relevante. Corrija a causa e envie uma nova alteração para o mesmo PR.
+5. Revise o diff em **Files changed** e responda aos comentários. A aprovação e o merge seguem as regras da equipe.
 
-### PR quando Code Scanning estiver habilitado
+### Como ler o estado de um check
 
-1. Consulte o check de Code Scanning no PR junto com o build Maven.
-2. Abra cada alerta para ver a regra, severidade, arquivo e linha indicados.
-3. Corrija no código e envie um novo commit; confirme se a nova análise atualizou ou fechou o alerta.
-4. Trate os checks como sinais para revisão. O bloqueio de merge depende da regra de branch configurada pela administração.
+- **Em execução:** o workflow ainda está trabalhando. Aguarde o resultado.
+- **Sucesso:** as etapas daquele workflow passaram. Confira o que o workflow realmente executou; um build não substitui análise de segurança.
+- **Falha:** uma etapa não passou ou encontrou uma condição que encerra o workflow. Abra o log para saber qual.
+- **Não aparece:** a verificação pode não estar configurada para esse evento, branch ou linguagem, pode estar desligada ou não ser obrigatória. A ausência não significa que a análise passou.
+- **Pendente ou ignorado:** verifique a explicação no GitHub e siga o processo da equipe. Não presuma que isso equivale a uma aprovação.
 
-### PR automático do Dependabot
+Checks podem vir de GitHub Actions, Code Scanning ou outros serviços. O nome e o propósito aparecem no próprio check.
 
-1. Confira no diff quais dependências e versões foram alteradas.
-2. Leia a descrição do alerta/atualização e examine os checks do PR.
-3. Revise compatibilidade e testes como em qualquer PR. Um PR do bot não deve ser aprovado automaticamente neste exercício.
-4. Somente a proprietária aprova e faz merge.
+## 3. O que cada ferramenta indica para quem envia ou revisa PRs
 
-### Push protection
+### GitHub Actions
 
-Se um push for bloqueado por uma possível credencial, não contorne o bloqueio com um segredo real. Remova o valor do código/histórico conforme o caso, use um armazenamento seguro para credenciais e siga o procedimento da organização.
+Actions executa os workflows definidos para eventos como abrir ou atualizar um PR. Um workflow pode compilar o projeto, rodar testes, verificar estilo ou executar outras tarefas. Consulte o resultado e os logs do job que corresponde à falha. Se o workflow está verde, conclua apenas que as tarefas configuradas nele passaram naquela execução.
 
-## 2. Exemplo prático: PR #9
+### Code Scanning
 
-**PR:** [Demonstração controlada de SQL Injection](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9)
-**Branch:** `demo/vulnerabilidade-sql-sem-code-scanning`
-**Commit:** `32da6b1` — mensagem assinada e verificada pelo GitHub.
+Quando uma análise de código está configurada para o PR, ela pode exibir alertas e anotações com a regra, severidade, arquivo e trecho relacionado. Abra o alerta para entender o caminho do dado, o risco e a correção sugerida; depois confira o contexto completo no diff.
 
-Este PR foi criado para comparar a compilação do Actions com a análise de segurança do CodeQL. Ele adiciona uma rota isolada de demonstração que monta uma consulta SQL concatenando a entrada `name`. A rota comum de busca continua usando consulta parametrizada. O código vulnerável existe apenas para o exercício e não deve ser mesclado nem usado em produção.
+Um alerta não significa automaticamente que o merge será bloqueado. Isso depende das regras de proteção e da configuração do check. Da mesma forma, nenhum alerta pode significar que a análise não encontrou problemas que reconhece, que não foi executada ou que não cobre aquele caso. Considere a linguagem, o tipo de análise e o código efetivamente analisado.
 
-### Resultado observado
+**Ao encontrar um alerta:**
 
-- O workflow **Build and test with Maven** concluiu com sucesso no PR. Isso confirma que o projeto compilou e que os testes executados por Maven passaram; não confirma que o código é seguro.
-- O CodeQL / Code Scanning permaneceu desligado, conforme solicitado. Por isso, o GitHub não executou a análise CodeQL e não mostrou alerta de vulnerabilidade nesse PR.
-- A ausência do alerta é esperada porque o analisador estava desligado. Não é evidência de que o código vulnerável tenha passado por uma análise estática.
-- Não há reviewer atribuído: a revisão está pendente da mantenedora. Dependabot não é revisor humano; quando habilitado, pode abrir PRs de dependências, que ainda precisam de revisão.
-- A mantenedora decide se aprova e mescla. O assistente não aprova nem mescla PRs.
+1. Leia a descrição, severidade, arquivo e linha indicados.
+2. Entenda se o achado é real no contexto da mudança; não descarte apenas porque o build passou.
+3. Corrija a origem do problema e acrescente ou ajuste testes quando fizer sentido.
+4. Envie a correção e confira a nova análise. Se considerar o alerta incorreto, siga o processo da equipe para justificar e solicitar triagem; não o oculte sem explicação.
 
-**Evidências no GitHub:** [conversa e descrição do PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9), [checks do PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9/checks) e [execução do Actions #25](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38097282398). A Captura 4 é uma execução anterior do workflow, no PR #7; use os links do PR #9 para ver o resultado desta demonstração.
+### Dependabot
 
-### Antes e depois: trecho que Code Scanning deve examinar
+Dependabot pode abrir PRs de **atualização de segurança** para dependências vulneráveis ou de **atualização de versão** para manter dependências atualizadas. O PR normalmente identifica a dependência e a versão proposta, e pode incluir informações sobre a atualização.
 
-As duas figuras abaixo são visualizações legíveis dos trechos reais de `ProductRepository.java`, comparando `main` com o código introduzido no PR #9. Elas não são capturas da interface do GitHub. O diff original e as linhas verificáveis estão em [Files changed no PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9/files).
+Trate-o como uma alteração de código: confira o diff, o motivo da atualização, a compatibilidade e os checks. Veja notas de versão quando uma atualização puder alterar comportamento. Um PR criado pelo Dependabot não é uma aprovação humana; siga o processo normal de revisão e aprovação.
 
-**Antes — `main`, linhas 32–36: busca parametrizada.** O `?` ocupa o lugar do valor; `name` é passado separadamente como parâmetro. Isso evita montar SQL com o conteúdo recebido.
+### Secret Scanning e Push Protection
 
-![Visualização do código antes: busca parametrizada na main, ProductRepository.java linhas 32 a 36](capturas/05-antes-busca-parametrizada.png)
+Secret Scanning procura padrões de credenciais expostas no repositório e pode gerar alertas. Push Protection pode bloquear um envio quando detecta um possível segredo, conforme a configuração aplicada.
 
-**Depois — PR #9, linhas 39–42: SQL Injection demonstrativa.** A entrada externa chega pelo parâmetro `name` em `ProductController.java`, linha 38. `ProductRepository.java`, linha 41, concatena esse valor dentro da instrução SQL; a linha 42 envia a consulta montada para `JdbcTemplate.query`. A rota de demonstração é `/api/products/demo/sql-injection` (linhas 37–40 do controller).
+**Se o envio for bloqueado:**
 
-![Visualização do código depois: concatenação SQL no PR 9, ProductRepository.java linhas 39 a 42](capturas/06-depois-concatenacao-sql.png)
+1. Não coloque uma credencial real em um PR ou commit de teste.
+2. Remova o valor do código e use o mecanismo de armazenamento aprovado pela equipe.
+3. Se a credencial for verdadeira ou tiver sido exposta, avise imediatamente o responsável e revogue ou rotacione o segredo. Apagar o texto do commit, sozinho, não invalida uma credencial que já foi exposta.
+4. Só use uma opção de bypass se a política da organização permitir e houver justificativa aprovada. O bypass pode registrar um alerta e não deve servir para contornar a correção.
 
-**O que esperamos observar quando Code Scanning for ligado:** se o CodeQL reconhecer o fluxo da entrada `name` até a consulta SQL, deverá registrar um alerta de SQL Injection associado ao trecho vulnerável, com arquivo, linha e explicação. O PR atual não confirma essa detecção: CodeQL está desligado. O resultado verde existente é somente do Maven; a compilação não detecta essa falha de segurança.
+Se o padrão detectado for um falso positivo ou um valor de teste sem validade, siga o procedimento definido pelos administradores para revisar o bloqueio.
 
-**“A análise encontrou” e “o PR bloqueou” são resultados diferentes.** Um alerta/anotação ajuda a localizar o problema no diff. Para impedir merge, a administração também precisa exigir o check de Code Scanning nas regras de proteção da branch. Com CodeQL desligado, nem alerta nem check do CodeQL são esperados neste PR. Consulte [alertas de Code Scanning](https://docs.github.com/en/code-security/concepts/code-scanning/code-scanning-alerts), [alertas em pull requests](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/triage-alerts-in-pull-requests) e [checks obrigatórios](https://docs.github.com/en/pull-requests/reference/status-checks).
+## 4. Alerta encontrado versus merge bloqueado
 
-**Versão segura de referência:** mantenha a consulta parametrizada, como em `searchByName` nas linhas 32–36. Ao encerrar a demonstração, remova a rota e o método inseguros; não copie esse trecho para uma aplicação real.
+O GitHub pode mostrar um alerta para ajudar a equipe a localizar um problema sem impedir o merge. Para bloquear o merge, o repositório precisa exigir o check relevante ou outra regra aplicável. O usuário deve:
 
-### Como ler este PR
+1. verificar se o resultado está concluído e qual ferramenta o produziu;
+2. abrir os detalhes do alerta ou do check e entender a ação esperada;
+3. corrigir o problema ou encaminhar a triagem conforme a política da equipe;
+4. confirmar que a nova execução reflete a correção;
+5. aguardar as aprovações exigidas antes do merge.
 
-1. Na conversa, leia **Objetivo**, **Alteração**, **O que observar** e **Revisão** antes de olhar os checks.
-2. Em **Checks**, confirme que o job do Maven terminou com sucesso. Um check verde quer dizer que aquele job passou, dentro do que ele executa.
-3. Confira quais checks aparecem no PR. Se a mantenedora não habilitou CodeQL, não espere alerta nem check de Code Scanning.
-4. Em **Files changed**, localize `ProductRepository.java` nas linhas 39–42 e compare com a busca segura nas linhas 32–36. A visualização lado a lado acima resume essa alteração.
-5. Não aprove nem mescle este PR enquanto a rota vulnerável estiver presente. A mantenedora deve decidir o próximo passo do exercício.
+Não trate “sem check”, “check verde” e “alerta resolvido” como estados equivalentes.
+
+## 5. Exercícios controlados para aprender as ferramentas
+
+Uma equipe pode comparar o resultado de uma mudança segura com o de uma vulnerabilidade intencional para entender o que uma análise detecta. Isso deve ocorrer em uma branch ou repositório de laboratório, com dados fictícios e sob supervisão. Nunca introduza credenciais válidas ou código inseguro em uma branch de produção.
+
+Para cada exercício:
+
+1. registre o estado inicial e quais verificações estão ativas;
+2. faça uma única alteração controlada e descreva o comportamento esperado;
+3. abra um PR e observe os checks e alertas sem presumir que a ferramenta necessariamente reconhecerá o caso;
+4. compare o resultado com o que a análise realmente executou e com o diff;
+5. remova o código inseguro, confirme a nova análise e não faça merge enquanto o risco estiver presente.
+
+Uma ferramenta pode não reconhecer um exemplo por limitações de linguagem, configuração, regras selecionadas ou contexto analisado. A finalidade do exercício é aprender o alcance e os limites da verificação, não declarar o código seguro por ausência de alertas.
+
+## 6. Modelo de descrição para PR
+
+Adapte este roteiro ao padrão da equipe:
+
+- **Objetivo:** qual necessidade esta mudança atende?
+- **Alterações:** o que foi modificado?
+- **Verificação:** quais testes ou checks foram executados?
+- **Segurança:** há alertas, dados sensíveis ou riscos que o revisor deve avaliar?
+- **Revisão:** há algum ponto específico que precisa de atenção?
+
+Não inclua tokens, senhas, dados pessoais ou segredos nos exemplos, na descrição ou nos comentários do PR.
+
+## 7. Checklist rápido
+
+### Para quem abre o PR
+
+- [ ] O título e a descrição explicam a mudança.
+- [ ] O diff contém somente o escopo esperado.
+- [ ] Os checks terminaram e as falhas foram investigadas.
+- [ ] Alertas de segurança foram tratados ou encaminhados com justificativa.
+- [ ] Nenhuma credencial real foi incluída.
+- [ ] As revisões e aprovações necessárias foram solicitadas.
+
+### Para quem revisa
+
+- [ ] O diff corresponde ao objetivo informado.
+- [ ] Os checks importantes foram executados e seus resultados foram entendidos.
+- [ ] Alterações de dependências foram avaliadas quanto a segurança e compatibilidade.
+- [ ] Alertas e possíveis segredos foram tratados conforme a política da equipe.
+- [ ] A aprovação considera o código e as regras do repositório; status verde isolado não substitui revisão.
+
+## 8. Referências oficiais
+
+- [GitHub Actions: entender workflows](https://docs.github.com/en/actions/about-github-actions/understanding-github-actions)
+- [Code Scanning: alertas e resultados em Pull Requests](https://docs.github.com/en/code-security/concepts/code-scanning/code-scanning-alerts)
+- [Checks de status e regras de branch](https://docs.github.com/en/pull-requests/reference/status-checks)
+- [Revisar PRs do Dependabot](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/manage-dependabot-prs)
+- [Secret Scanning e prevenção de vazamentos](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/prevent-future-leaks)

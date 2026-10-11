@@ -5,62 +5,12 @@ from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
-from PIL import Image, ImageDraw, ImageFont
 
 root = Path(__file__).parent
 if len(sys.argv) != 3:
     raise SystemExit("Usage: _build_guide.py <source.md> <target.docx>")
 source = root / sys.argv[1]
 target = root / sys.argv[2]
-
-def code_figure(path, title, subtitle, rows, highlight=None):
-    """Render a reproducible code view from the exact before/after source lines."""
-    width, height = 1500, 430
-    image = Image.new("RGB", (width, height), "#0d1117")
-    draw = ImageDraw.Draw(image)
-    font_dir = Path("C:/Windows/Fonts")
-    font = ImageFont.truetype(str(font_dir / "consola.ttf"), 18)
-    bold = ImageFont.truetype(str(font_dir / "segoeuib.ttf"), 25)
-    regular = ImageFont.truetype(str(font_dir / "segoeui.ttf"), 19)
-    draw.rounded_rectangle((20, 18, width - 20, height - 18), radius=13, fill="#161b22", outline="#30363d", width=2)
-    draw.text((48, 38), title, font=bold, fill="#f0f6fc")
-    draw.text((48, 77), subtitle, font=regular, fill="#8b949e")
-    draw.line((40, 116, width - 40, 116), fill="#30363d", width=2)
-    y = 139
-    for number, text in rows:
-        if number == highlight:
-            draw.rounded_rectangle((34, y - 5, width - 38, y + 32), radius=4, fill="#5b2428")
-        draw.text((53, y), str(number), font=font, fill="#8b949e")
-        draw.text((105, y), text, font=font, fill="#ff7b72" if number == highlight else "#c9d1d9")
-        y += 43
-    draw.text((48, height - 59), "Visualização gerada dos arquivos do repositório; confira o diff do PR para a captura original.",
-              font=regular, fill="#8b949e")
-    image.save(path)
-
-code_figure(
-    root / "capturas/05-antes-busca-parametrizada.png",
-    "ANTES  |  main",
-    "ProductRepository.java  •  busca segura  •  linhas 32–36",
-    [
-        (32, "public List<Product> searchByName(String name) {"),
-        (33, "    return jdbcTemplate.query("),
-        (34, '        "SELECT id, name, category, price, stock FROM products WHERE name LIKE ? ORDER BY name",'),
-        (35, "        PRODUCT_ROW_MAPPER,"),
-        (36, '        "%" + name + "%");'),
-    ],
-)
-code_figure(
-    root / "capturas/06-depois-concatenacao-sql.png",
-    "DEPOIS  |  PR #9",
-    "ProductRepository.java  •  SQL Injection demonstrativa  •  linhas 39–42",
-    [
-        (39, "// Vulnerability deliberately isolated for the Code Scanning learning exercise."),
-        (40, "public List<Product> searchByNameForSqlInjectionDemo(String name) {"),
-        (41, '        String sql = "SELECT id, name, category, price, stock FROM products WHERE name LIKE \'%" + name + "%\' ORDER BY name";'),
-        (42, "    return jdbcTemplate.query(sql, PRODUCT_ROW_MAPPER);"),
-    ],
-    highlight=41,
-)
 
 lines = source.read_text(encoding="utf-8").splitlines()
 doc = Document()
@@ -80,11 +30,11 @@ for sty, size, color in [("Title", 23, "14365D"), ("Heading 1", 16, "14365D"), (
     styles[sty].font.color.rgb = RGBColor.from_string(color)
 
 header = sec.header.paragraphs[0]
-header.text = "SOM & CORDA  |  GUIA OPERACIONAL"
+header.text = "GUIA DO USUÁRIO  |  PULL REQUESTS E VERIFICAÇÕES"
 header.style = "Caption"
 header.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 footer = sec.footer.paragraphs[0]
-footer.text = "Trilha de aprendizado • Atualizado em 10/10/2026"
+footer.text = "Fluxo de contribuição e verificações de segurança no GitHub"
 footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 def add_runs(p, text):
@@ -185,7 +135,7 @@ while i < len(lines):
     i += 1
 
 doc.core_properties.title = lines[0].removeprefix("# ")
-doc.core_properties.subject = "Guia operacional por público"
-doc.core_properties.author = "Som & Corda"
+doc.core_properties.subject = "Orientação para autoria e revisão de pull requests"
+doc.core_properties.author = "Documentação operacional"
 doc.save(target)
 print(target)

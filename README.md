@@ -70,7 +70,7 @@ Neste momento, CodeQL/Code Scanning, Dependabot e Secret Protection estão desli
 
 Copilot Autofix aparece ligado nas configurações, mas depende de alertas do CodeQL para sugerir correções e não substitui uma análise ativa. Não o alteramos nesta etapa.
 
-As instruções foram separadas por público: a [documentação da mantenedora em Word](docs/guia-maintainer-ghas.docx) e [Markdown](docs/guia-maintainer-ghas.md) descreve configurações e decisões administrativas; a [documentação de usuários em Word](docs/guia-usuario-prs.docx) e [Markdown](docs/guia-usuario-prs.md) explica como acompanhar e revisar PRs, incluindo a comparação de código antes/depois. As imagens de configuração e os trechos de código ficam em `docs/capturas/`. Cada arquivo Markdown é a fonte editável do respectivo Word.
+As instruções foram separadas por público: a [documentação da mantenedora em Word](docs/guia-maintainer-ghas.docx) e [Markdown](docs/guia-maintainer-ghas.md) descreve configurações e decisões administrativas; a [documentação de usuários em Word](docs/guia-usuario-prs.docx) e [Markdown](docs/guia-usuario-prs.md) explica o fluxo de PRs, a leitura dos checks e a resposta a alertas de segurança. Cada arquivo Markdown é a fonte editável do respectivo Word.
 
 ### Ordem acordada para os testes
 
