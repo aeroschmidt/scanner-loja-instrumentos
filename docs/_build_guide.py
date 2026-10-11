@@ -1,5 +1,6 @@
 from pathlib import Path
 import re
+import sys
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -7,8 +8,10 @@ from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
 from PIL import Image, ImageDraw, ImageFont
 
 root = Path(__file__).parent
-source = root / "guia-github-actions-e-seguranca.md"
-target = root / "guia-github-actions-e-seguranca.docx"
+if len(sys.argv) != 3:
+    raise SystemExit("Usage: _build_guide.py <source.md> <target.docx>")
+source = root / sys.argv[1]
+target = root / sys.argv[2]
 
 def code_figure(path, title, subtitle, rows, highlight=None):
     """Render a reproducible code view from the exact before/after source lines."""
@@ -181,8 +184,8 @@ while i < len(lines):
         add_runs(p, line)
     i += 1
 
-doc.core_properties.title = "GitHub Actions e segurança do repositório"
-doc.core_properties.subject = "Passos para administradores e participantes de PRs"
+doc.core_properties.title = lines[0].removeprefix("# ")
+doc.core_properties.subject = "Guia operacional por público"
 doc.core_properties.author = "Som & Corda"
 doc.save(target)
 print(target)
