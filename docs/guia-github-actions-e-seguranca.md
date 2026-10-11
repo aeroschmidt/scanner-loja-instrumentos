@@ -2,16 +2,15 @@
 
 **Projeto:** Som & Corda — loja de instrumentos  
 **Repositório:** `aeroschmidt/scanner-loja-instrumentos`  
-**Registro de estado:** 10 de outubro de 2026; atualização do Code Scanning após o PR #10
+**Registro de estado:** 10 de outubro de 2026
 
-Este guia registra o que está ativo, o que ainda está desligado e como cada participante acompanha os testes. A sequência é uma ferramenta por vez. A mantenedora habilitou Code Scanning antes do PR #10; este documento registra o estado observado e não altera configurações.
+Este guia registra o que está ativo, o que ainda está desligado e como cada participante acompanha os testes. O PR #10 continua aberto e contém uma SQL Injection intencional; esta documentação registra o estado observado, não aprova nem integra a alteração.
 
 ## 1. Estado atual do projeto
 
 | Recurso | Estado observado | O que significa agora |
 |---|---|---|
 | GitHub Actions | Ativo | O workflow `Build and test` executa Maven `verify` em `push` para `main` e em PR destinado a `main`. |
-| Sonar no workflow | Removido nesta etapa | O workflow não chama Sonar nem lê `SONAR_TOKEN`. A análise local continua descrita no README. |
 | Dependency graph | Off | Ainda não há inventário de dependências apresentado nesta tela do repositório. |
 | Dependabot alerts / security updates | Off | Ainda não serão gerados alertas/PRs do Dependabot neste repositório. |
 | Dependabot version updates | Não configurado | Não há `.github/dependabot.yml`. |
@@ -39,13 +38,12 @@ Este guia registra o que está ativo, o que ainda está desligado e como cada pa
 
 ### A. Entender o GitHub Actions que já existe
 
-1. Abra o repositório e selecione **Actions** (a execução bem-sucedida está na Captura 4).
-2. Abra uma execução do workflow **Build and test**.
-3. Confira o evento que iniciou a execução (`push` ou `pull_request`), o job e seus steps.
-4. Abra **Build, test, and analyze with SonarQube** apenas em execuções históricas; no workflow atual, o step executa `./mvnw --batch-mode --no-transfer-progress verify`.
-5. Em `build.yml`, identifique os gatilhos, o runner, a preparação do Java, o cache Maven e o comando de build. A execução recente registrada concluiu com sucesso.
+1. Abra o repositório e selecione **Actions**. Consulte a execução associada ao PR que estiver avaliando.
+2. Confira o evento que iniciou a execução (`pull_request`), o job e os steps.
+3. O arquivo `build.yml` prepara Java 21 e executa `./mvnw ... verify` para compilar e testar.
+4. Inspecione o log do job para conferir o que foi executado e localizar a primeira mensagem de falha, se houver.
 
-O Actions coordena o workflow; Maven compila o projeto e roda os testes. Um check de Actions não significa que CodeQL, Dependabot ou Secret Scanning estejam ativos.
+O Actions coordena o workflow e o Maven compila e testa. Uma execução verde confirma apenas os passos configurados nesse workflow; a análise CodeQL é uma verificação separada.
 
 ### B. Dependabot — testar primeiro
 
@@ -81,10 +79,6 @@ Default setup é uma configuração do Code Scanning gerenciada pelo GitHub. Nã
 5. Não use credenciais reais em testes. Se for necessário validar detecção, use o procedimento e os valores de teste indicados pela documentação oficial do GitHub.
 
 Regras e disponibilidade de funcionalidades dependem de visibilidade e plano do repositório. Em repositórios públicos, o GitHub informa que envia alertas de padrões de parceiros aos provedores correspondentes; isso não deve ser confundido com a configuração dos alertas privados para a proprietária.
-
-### E. Depois dos testes: Sonar por último
-
-Quando Dependabot, CodeQL e Secret Scanning tiverem sido testados e registrados, a última etapa será reintroduzir Sonar no workflow. Então poderemos comparar checks nativos do GitHub com a análise e o Quality Gate do Sonar. Até lá, o workflow não usa `SONAR_TOKEN`.
 
 ## 3. Para quem cria ou revisa PRs
 
@@ -130,8 +124,7 @@ Dispensar fecha o alerta no painel, registra a razão e não corrige o código. 
 2. Testar Dependabot isoladamente.
 3. Testar Code Scanning/CodeQL isoladamente.
 4. Testar Secret Scanning e, se autorizado, Push protection.
-5. Consolidar capturas, o que apareceu nos PRs e o que cada papel deve fazer.
-6. Reintegrar Sonar por último e comparar os resultados.
+5. Registrar estado inicial, configuração alterada e evidências de cada etapa, sem misturar os resultados do build com os alertas de segurança.
 
 Cada ativação é uma decisão separada da proprietária. Registre para cada sessão: data, configuração alterada, estado anterior/novo, URL da execução ou PR, resultado observado e captura da tela.
 
@@ -149,8 +142,8 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 
 ## 6. Histórico desta trilha
 
-- O PR #7 remove a execução do Sonar do workflow e mantém Maven `verify`.
-- O workflow usa os eventos `push` para `main` e `pull_request` para `main`.
+- O workflow executa Maven `verify`; a análise CodeQL é configurada separadamente nas opções de segurança do repositório.
+- O workflow da branch do PR #10 usa `push` para `main` e `pull_request` destinado a `main`.
 - Após a atualização deste guia, a execução [#21 do Actions](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38094010130) passou em 27 segundos no evento `pull_request`.
 - Code Scanning/CodeQL está ativo via Default setup para o exercício; Dependabot e Secret Protection continuam desligados conforme o escopo.
 - A proprietária revisa e aprova PRs. O assistente não aprova nem mescla.

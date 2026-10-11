@@ -30,11 +30,12 @@ for sty, size, color in [("Title", 23, "14365D"), ("Heading 1", 16, "14365D"), (
     styles[sty].font.color.rgb = RGBColor.from_string(color)
 
 header = sec.header.paragraphs[0]
-header.text = "GUIA DO USUÁRIO  |  PULL REQUESTS E VERIFICAÇÕES"
+audience = "MANTENEDORA  |  AÇÕES E SEGURANÇA" if "guia-github-actions-e-seguranca" in target.stem else "USUÁRIO  |  PULL REQUESTS E VERIFICAÇÕES"
+header.text = audience
 header.style = "Caption"
 header.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 footer = sec.footer.paragraphs[0]
-footer.text = "Fluxo de contribuição e verificações de segurança no GitHub"
+footer.text = "Administração de Actions e segurança no GitHub" if "guia-github-actions-e-seguranca" in target.stem else "Orientações para criar e revisar Pull Requests no GitHub"
 footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 def add_runs(p, text):

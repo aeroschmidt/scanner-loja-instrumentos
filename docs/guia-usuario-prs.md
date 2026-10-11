@@ -178,7 +178,7 @@ O CodeQL concluiu as análises e registrou **um alerta High**, “Query built fr
 
 ![Diff do PR #10: entrada concatenada na consulta SQL de demonstração](capturas/pr10-source.jpg)
 
-Nesta execução, os checks do CodeQL e do Maven terminaram verdes, embora o Code Scanning tenha registrado o alerta. O PR também aparece como apto a merge. Isso demonstra, neste repositório, que o alerta visível não bloqueou o merge por si só; o estado do alerta, o resultado do check e as regras de proteção são sinais separados. **Não aprove nem faça merge do PR #10:** a vulnerabilidade é intencional e o PR aguarda revisão da mantenedora.
+Na execução do commit `d4ad0e1`, os checks do CodeQL e do Maven terminaram verdes, embora o Code Scanning tenha registrado o alerta. O PR também aparecia como apto a merge. Isso demonstra, neste repositório, que o alerta visível não bloqueou o merge por si só; o estado do alerta, o resultado do check e as regras de proteção são sinais separados. **Não aprove nem faça merge do PR #10:** a vulnerabilidade é intencional e o PR aguarda revisão da mantenedora.
 
 #### Um alerta High ou Critical pode ser dispensado?
 
