@@ -131,3 +131,55 @@ Não inclua tokens, senhas, dados pessoais ou segredos nos exemplos, na descriç
 - [Checks de status e regras de branch](https://docs.github.com/en/pull-requests/reference/status-checks)
 - [Revisar PRs do Dependabot](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/manage-dependabot-prs)
 - [Secret Scanning e prevenção de vazamentos](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/prevent-future-leaks)
+
+## 9. Estudo de caso visual dos PRs
+
+As telas abaixo registram exercícios deste laboratório em 10/10/2026. Elas mostram resultados observados, não uma promessa de que toda configuração de repositório produzirá os mesmos checks. Os números dos PRs são referências do exercício; em outro repositório, siga os mesmos passos sem depender desses números.
+
+### PR comum sem Code Scanning
+
+O [PR #8](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/8) é a referência de um PR pequeno, sem código vulnerável: alterou apenas documentação. A conversa mostra o objetivo, o estado aberto e a ausência de revisões; o painel de checks mostra o workflow **Build and test** concluído com sucesso. Em **Files changed**, o único arquivo é `README.md`.
+
+![PR comum aberto: descrição, estado e revisão pendente](capturas/pr8-overview.jpg)
+
+![PR comum: check de Build and test concluído com sucesso](capturas/pr8-checks.jpg)
+
+![PR comum: o diff altera apenas o README](capturas/pr8-files.jpg)
+
+O resultado verde confirma somente que o workflow configurado passou. Nesse exemplo, não havia Code Scanning executando; portanto, não se deve concluir que o código foi analisado por segurança.
+
+### PR atual com SQL Injection intencional
+
+O [PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9) é um exercício isolado para visualizar uma vulnerabilidade. **Não aprove nem faça merge deste PR:** a alteração insegura foi mantida de propósito para a demonstração. A página mostra a descrição e o estado atual do PR; a área de checks mostra execuções do workflow Maven, mas não mostra um check do CodeQL. A aba **Files changed** mostra o diff real.
+
+![PR de laboratório aberto: objetivo, escopo e estado atual](capturas/pr9-overview.jpg)
+
+![PR de laboratório: checks de Build and test, sem check de CodeQL](capturas/pr9-checks.jpg)
+
+Na aplicação, a busca normal continua usando consulta parametrizada. A demonstração acrescenta uma rota separada em `ProductController.java` (`/api/products/demo/sql-injection`) que encaminha o parâmetro `name` ao método de laboratório em `ProductRepository.java`. Esse método monta a instrução SQL concatenando a entrada recebida e a envia a `jdbcTemplate.query`. A rota e a concatenação são as partes deliberadamente inseguras.
+
+![Diff do controller: rota de demonstração direciona a chamada ao método vulnerável](capturas/pr9-controller.jpg)
+
+![Diff do repositório: a consulta SQL concatena diretamente o parâmetro recebido](capturas/pr9-files.jpg)
+
+**O que funciona e o que não foi verificado neste PR:** o build Maven pode compilar a aplicação e os testes existentes podem passar mesmo com esse caminho inseguro, pois sucesso de build não é análise estática de segurança. Na execução atual do PR #9, o GitHub Actions passou; como o Code Scanning está desligado, nenhum alerta do CodeQL era esperado. O cartão “Ready to merge” também não certifica segurança: indica apenas o estado das regras e checks configurados no repositório naquele momento.
+
+### Evidência anterior com Code Scanning ativo
+
+Para comparar com o caso atual, o PR histórico [#7](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/7) contém a captura de uma análise do CodeQL que apontou um alerta **High** na chamada de `jdbcTemplate.query`, na linha que envia a consulta concatenada. A origem do dado não confiável aparece na montagem da SQL logo acima. A alteração foi posteriormente corrigida antes de o PR #7 ser integrado; a captura documenta a revisão histórica, não o estado atual da branch principal.
+
+![PR histórico: alerta High do CodeQL anotado na chamada jdbcTemplate.query](capturas/pr7-code-scanning.jpg)
+
+Na execução associada à versão vulnerável, o job Maven também falhou na etapa de testes. O log mostra `BUILD FAILURE` e falha do objetivo `maven-surefire-plugin:test`. Esse resultado veio dos testes da aplicação; é diferente do alerta estático do CodeQL. Uma vulnerabilidade não precisa fazer o build falhar: neste exercício, a falha Maven e o alerta CodeQL foram sinais independentes.
+
+![Execução histórica: o job Maven falhou na etapa de testes](capturas/pr7-checks.jpg)
+
+O CodeQL pode apontar arquivo, localização e regra quando a análise executada reconhece o fluxo vulnerável. Isso, por si só, não torna o alerta um bloqueio de merge. Para impedir integração, a equipe precisa configurar uma regra que exija o check apropriado; além disso, alertas e checks são estados distintos. A decisão final deve seguir a revisão e aprovação humana exigidas pelo repositório.
+
+### Como interpretar a comparação
+
+- **PR #8, documentação sem Code Scanning:** o workflow de build/teste ficou verde e o diff foi pequeno. Isso não mostra uma análise de segurança do código.
+- **PR #9, SQL Injection com Code Scanning desligado:** o workflow ficou verde e o diff mostra o caminho inseguro; não há check do CodeQL. Isso não significa que o código está seguro nem que passou por análise estática.
+- **PR #7 histórico, CodeQL ativo:** há um alerta High localizado na chamada SQL e um job Maven que falhou nos testes. Isso não significa que todo alerta falha o build ou bloqueia o merge.
+
+Os screenshots preservam o contexto de cada tela. Ao registrar uma nova ferramenta ou alteração de configuração, capture também o estado anterior, o diff, os checks e a localização do alerta ou falha; identifique se a imagem é atual ou histórica e não exponha credenciais ou dados reais.
