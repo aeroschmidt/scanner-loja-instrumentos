@@ -45,6 +45,8 @@ Este guia registra o que está ativo, o que ainda está desligado e como cada pa
 
 O Actions coordena o workflow e o Maven compila e testa. Uma execução verde confirma apenas os passos configurados nesse workflow; a análise CodeQL é uma verificação separada.
 
+Cada novo push ou atualização de PR pode iniciar outra execução. O GitHub permite execuções simultâneas por padrão. Quando a capacidade de runners hospedados é atingida, os jobs novos aguardam na fila; eles não falham apenas porque várias pessoas enviaram commits. Se a equipe configurar `concurrency` com cancelamento, execuções anteriores da mesma fila podem ser canceladas intencionalmente. Ao investigar um resultado, confira sempre o SHA do commit associado ao check para não confundir a execução de um commit antigo com a mais recente.
+
 ### B. Dependabot — testar primeiro
 
 Dependabot cobre dois comportamentos distintos:
@@ -110,9 +112,11 @@ Se um push for bloqueado por uma possível credencial, não contorne o bloqueio 
 
 ### Dispensa de alertas de Code Scanning
 
-Se a pessoa tem permissão de escrita no repositório, a interface normalmente oferece **Dismiss alert**, independentemente de o alerta ser High ou Critical. A severidade informa a gravidade; ela não concede nem remove permissões. No alerta High observado no PR #10, o botão abriu um formulário que exige uma razão. As opções mostradas foram `False positive`, `Used in tests`, `Won't fix` e `Mitigated`. Nenhuma foi selecionada e o alerta continua aberto.
+Não é qualquer pessoa que fez um commit: no padrão atual, quem tem **permissão de escrita no repositório** pode ver e usar **Dismiss alert**, independentemente de o alerta ser High ou Critical. A severidade informa a gravidade; ela não concede nem remove permissões. No alerta High observado no PR #10, o botão abriu um formulário que exige uma razão. As opções mostradas foram `False positive`, `Used in tests`, `Won't fix` e `Mitigated`. Nenhuma foi selecionada e o alerta continua aberto.
 
-Dispensar fecha o alerta no painel, registra a razão e não corrige o código. Para uma vulnerabilidade real, a ação esperada é corrigir o código e aguardar nova análise. Configure **delegated alert dismissal** somente se a política exigir controle adicional: pessoas com acesso de escrita passam a solicitar a dispensa, e proprietários da organização/security managers podem aprovar ou rejeitar. A opção delegada não foi ativada neste exercício.
+Boa prática: primeiro entenda a regra e o caminho indicado, confirme se o achado é real e corrija a causa no código; rode testes e aguarde a nova análise. Não dispense um alerta real só para liberar o PR ou deixar o check verde. Use **Dismiss alert** apenas quando houver uma justificativa válida (por exemplo, falso positivo ou uso deliberado em teste), registre o contexto e siga a política de revisão da equipe. Dispensar fecha o alerta no painel, registra a razão e não corrige o código.
+
+Se a política exigir controle adicional, a mantenedora pode configurar **delegated alert dismissal**: pessoas com acesso de escrita solicitam a dispensa, e proprietários da organização ou security managers podem aprovar ou rejeitar. A opção delegada não foi ativada neste exercício.
 
 ![Alerta High aberto no PR #10, com a localização em ProductRepository.java](capturas/pr10-alert-detail-final.jpg)
 
@@ -136,6 +140,9 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 - [Tipos de configuração do Code Scanning](https://docs.github.com/en/code-security/concepts/code-scanning/setup-types)
 - [Resolver alertas de Code Scanning e dispensá-los](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/resolve-alerts)
 - [Aprovação delegada de dispensas](https://docs.github.com/en/code-security/concepts/security-at-scale/delegated-alert-dismissal)
+- [Quem pode dispensar alertas de Code Scanning](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/triage-alerts-in-pull-requests)
+- [Concorrência de workflows e jobs](https://docs.github.com/en/actions/concepts/workflows-and-actions/concurrency)
+- [Limites do GitHub Actions](https://docs.github.com/en/actions/reference/limits)
 - [Habilitar Secret Scanning](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/detect-secret-leaks/enable-secret-scanning)
 - [Habilitar Push protection](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/prevent-future-leaks/enable-push-protection)
 - [Quickstart de segurança do GitHub](https://docs.github.com/en/code-security/getting-started/quickstart-for-securing-your-repository)

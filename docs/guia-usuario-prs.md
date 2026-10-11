@@ -35,6 +35,8 @@ Checks podem vir de GitHub Actions, Code Scanning ou outros serviços. O nome e 
 
 Actions executa os workflows definidos para eventos como abrir ou atualizar um PR. Um workflow pode compilar o projeto, rodar testes, verificar estilo ou executar outras tarefas. Consulte o resultado e os logs do job que corresponde à falha. Se o workflow está verde, conclua apenas que as tarefas configuradas nele passaram naquela execução.
 
+Cada commit novo no PR pode iniciar uma execução. O GitHub roda vários workflows ao mesmo tempo por padrão; se a capacidade de runners estiver ocupada, novos jobs podem ficar **na fila** até haver vaga. Isso normalmente não significa falha. Um workflow pode ser cancelado se houver uma regra de concorrência configurada para cancelar execuções antigas ou se um limite do serviço for atingido. Antes de agir sobre um check, confirme que ele pertence ao SHA mais recente do PR.
+
 ### Code Scanning
 
 Quando uma análise de código está configurada para o PR, ela pode exibir alertas e anotações com a regra, severidade, arquivo e trecho relacionado. Abra o alerta para entender o caminho do dado, o risco e a correção sugerida; depois confira o contexto completo no diff.
@@ -44,9 +46,9 @@ Um alerta não significa automaticamente que o merge será bloqueado. Isso depen
 **Ao encontrar um alerta:**
 
 1. Leia a descrição, severidade, arquivo e linha indicados.
-2. Entenda se o achado é real no contexto da mudança; não descarte apenas porque o build passou.
-3. Corrija a origem do problema e acrescente ou ajuste testes quando fizer sentido.
-4. Envie a correção e confira a nova análise. Se considerar o alerta incorreto, siga o processo da equipe para justificar e solicitar triagem; não o oculte sem explicação.
+2. Entenda a falha e confirme se o achado é real no contexto da mudança; não descarte apenas porque o build passou.
+3. Como prática padrão, corrija a causa no código e acrescente ou ajuste testes quando fizer sentido.
+4. Envie a correção e confira a nova análise. Se o alerta for realmente incorreto ou inaplicável, solicite triagem e documente a razão conforme a política da equipe; não o dispense só para liberar o PR.
 
 ### Dependabot
 
@@ -129,6 +131,9 @@ Não inclua tokens, senhas, dados pessoais ou segredos nos exemplos, na descriç
 - [GitHub Actions: entender workflows](https://docs.github.com/en/actions/about-github-actions/understanding-github-actions)
 - [Code Scanning: alertas e resultados em Pull Requests](https://docs.github.com/en/code-security/concepts/code-scanning/code-scanning-alerts)
 - [Checks de status e regras de branch](https://docs.github.com/en/pull-requests/reference/status-checks)
+- [Quem pode dispensar alertas de Code Scanning](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/triage-alerts-in-pull-requests)
+- [Concorrência de workflows e jobs](https://docs.github.com/en/actions/concepts/workflows-and-actions/concurrency)
+- [Limites do GitHub Actions](https://docs.github.com/en/actions/reference/limits)
 - [Revisar PRs do Dependabot](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/manage-dependabot-prs)
 - [Secret Scanning e prevenção de vazamentos](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/prevent-future-leaks)
 
@@ -182,9 +187,9 @@ Na execução do commit `d4ad0e1`, os checks do CodeQL e do Maven terminaram ver
 
 #### Um alerta High ou Critical pode ser dispensado?
 
-**A severidade High ou Critical, sozinha, não impede a ação “Dismiss alert”.** No GitHub, quem tem permissão de escrita no repositório pode dispensar um alerta de Code Scanning, a menos que a organização tenha ativado a aprovação delegada. Na tela atual do PR #10, o alerta é High e a opção aparece; antes de confirmar, o GitHub exige uma razão. Não selecionamos uma razão nem dispensamos o alerta.
+**Não é todo mundo que fez commit:** no padrão atual, quem tem permissão de escrita no repositório pode dispensar um alerta de Code Scanning, a menos que a organização tenha ativado a aprovação delegada. A severidade High ou Critical, sozinha, não impede essa ação. Na tela atual do PR #10, o alerta é High e a opção aparece; antes de confirmar, o GitHub exige uma razão. Não selecionamos uma razão nem dispensamos o alerta.
 
-As razões exibidas para este alerta são **False positive**, **Used in tests**, **Won't fix** e **Mitigated**. Escolha uma apenas se ela descreve de fato o caso e registre o contexto. “Dismiss” fecha/arquiva o alerta para a análise, registra a razão e o remove da contagem de alertas atuais; não altera o código e não elimina a vulnerabilidade. A documentação do GitHub informa que o descarte vale para todas as branches e que uma nova análise não reabre o mesmo alerta para o mesmo código. Por isso, uma vulnerabilidade real deve ser corrigida no código, não dispensada para fazer o aviso sumir.
+As razões exibidas para este alerta são **False positive**, **Used in tests**, **Won't fix** e **Mitigated**. Escolha uma apenas se ela descreve de fato o caso e registre o contexto. “Dismiss” fecha/arquiva o alerta para a análise, registra a razão e o remove da contagem de alertas atuais; não altera o código e não elimina a vulnerabilidade. A documentação do GitHub informa que o descarte vale para todas as branches e que uma nova análise não reabre o mesmo alerta para o mesmo código. **Boa prática: entenda e corrija uma falha real no código, em vez de dispensar o alerta para deixar o check verde ou avançar o PR.**
 
 No PR de laboratório, a SQL continua concatenando a entrada recebida. O alerta High deve permanecer aberto até a correção da consulta; a tela de dismiss serve para demonstrar o fluxo, não para aprovar ou aceitar o risco.
 
