@@ -163,12 +163,30 @@ Este PR foi criado para comparar a compilação do Actions com a análise de seg
 
 **Evidências no GitHub:** [conversa e descrição do PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9), [checks do PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9/checks) e [execução do Actions #25](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38097282398). A Captura 4 é uma execução anterior do workflow, no PR #7; use os links do PR #9 para ver o resultado desta demonstração.
 
+### Antes e depois: trecho que Code Scanning deve examinar
+
+As duas figuras abaixo são visualizações legíveis dos trechos reais de `ProductRepository.java`, comparando `main` com o código introduzido no PR #9. Elas não são capturas da interface do GitHub. O diff original e as linhas verificáveis estão em [Files changed no PR #9](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/9/files).
+
+**Antes — `main`, linhas 32–36: busca parametrizada.** O `?` ocupa o lugar do valor; `name` é passado separadamente como parâmetro. Isso evita montar SQL com o conteúdo recebido.
+
+![Visualização do código antes: busca parametrizada na main, ProductRepository.java linhas 32 a 36](capturas/05-antes-busca-parametrizada.png)
+
+**Depois — PR #9, linhas 39–42: SQL Injection demonstrativa.** A entrada externa chega pelo parâmetro `name` em `ProductController.java`, linha 38. `ProductRepository.java`, linha 41, concatena esse valor dentro da instrução SQL; a linha 42 envia a consulta montada para `JdbcTemplate.query`. A rota de demonstração é `/api/products/demo/sql-injection` (linhas 37–40 do controller).
+
+![Visualização do código depois: concatenação SQL no PR 9, ProductRepository.java linhas 39 a 42](capturas/06-depois-concatenacao-sql.png)
+
+**O que esperamos observar quando Code Scanning for ligado:** se o CodeQL reconhecer o fluxo da entrada `name` até a consulta SQL, deverá registrar um alerta de SQL Injection associado ao trecho vulnerável, com arquivo, linha e explicação. O PR atual não confirma essa detecção: CodeQL está desligado. O resultado verde existente é somente do Maven; a compilação não detecta essa falha de segurança.
+
+**“A análise encontrou” e “o PR bloqueou” são resultados diferentes.** Um alerta/anotação ajuda a localizar o problema no diff. Para impedir merge, a administração também precisa exigir o check de Code Scanning nas regras de proteção da branch. Com CodeQL desligado, nem alerta nem check do CodeQL são esperados neste PR. Consulte [alertas de Code Scanning](https://docs.github.com/en/code-security/concepts/code-scanning/code-scanning-alerts), [alertas em pull requests](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/triage-alerts-in-pull-requests) e [checks obrigatórios](https://docs.github.com/en/pull-requests/reference/status-checks).
+
+**Versão segura de referência:** mantenha a consulta parametrizada, como em `searchByName` nas linhas 32–36. Ao encerrar a demonstração, remova a rota e o método inseguros; não copie esse trecho para uma aplicação real.
+
 ### Como ler este PR
 
 1. Na conversa, leia **Objetivo**, **Alteração**, **O que observar** e **Revisão** antes de olhar os checks.
 2. Em **Checks**, confirme que o job do Maven terminou com sucesso. Um check verde quer dizer que aquele job passou, dentro do que ele executa.
 3. Compare a lista de checks com o que está habilitado em **Settings > Advanced Security**. Como CodeQL está desligado, não espere check nem alerta Code Scanning.
-4. Em **Files changed**, identifique a rota de demonstração e confirme que a busca normal permanece parametrizada.
+4. Em **Files changed**, localize `ProductRepository.java` nas linhas 39–42 e compare com a busca segura nas linhas 32–36. A visualização lado a lado acima resume essa alteração.
 5. Não aprove nem mescle este PR enquanto a rota vulnerável estiver presente. A mantenedora deve decidir o próximo passo do exercício.
 
 **Nota sobre a branch:** o nome atual identifica que este é um exercício isolado e que Code Scanning está desligado. Mantivemos a branch para preservar o PR #9 aberto e seus checks; a tentativa de renomeá-la pelo GitHub avisou que fecharia o PR.
