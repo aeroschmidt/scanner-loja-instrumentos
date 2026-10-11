@@ -2,9 +2,9 @@
 
 **Projeto:** Som & Corda — loja de instrumentos  
 **Repositório:** `aeroschmidt/scanner-loja-instrumentos`  
-**Registro de estado:** 10 de outubro de 2026
+**Registro de estado:** 10 de outubro de 2026; atualização do Code Scanning após o PR #10
 
-Este guia registra o que está ativo, o que ainda está desligado e como cada participante acompanha os testes. A sequência será uma ferramenta por vez. Nenhuma ferramenta de GHAS é habilitada por este documento.
+Este guia registra o que está ativo, o que ainda está desligado e como cada participante acompanha os testes. A sequência é uma ferramenta por vez. A mantenedora habilitou Code Scanning antes do PR #10; este documento registra o estado observado e não altera configurações.
 
 ## 1. Estado atual do projeto
 
@@ -15,7 +15,7 @@ Este guia registra o que está ativo, o que ainda está desligado e como cada pa
 | Dependency graph | Off | Ainda não há inventário de dependências apresentado nesta tela do repositório. |
 | Dependabot alerts / security updates | Off | Ainda não serão gerados alertas/PRs do Dependabot neste repositório. |
 | Dependabot version updates | Não configurado | Não há `.github/dependabot.yml`. |
-| CodeQL / Code Scanning | Off | Settings oferece `Set up`; não está escaneando o código. |
+| CodeQL / Code Scanning | On, Default setup | Analisou o PR #10 e encontrou um alerta High de SQL Injection em `ProductRepository.java:42`. |
 | Secret Protection | Off | Settings oferece `Enable`. Em repositório público, padrões de parceiros podem continuar sendo reportados aos provedores, conforme a regra do GitHub. |
 | Copilot Autofix | On na tela | Depende de CodeQL habilitado para propor correções de alertas CodeQL; não foi alterado. |
 
@@ -23,7 +23,7 @@ Este guia registra o que está ativo, o que ainda está desligado e como cada pa
 
 ![Settings: Dependency graph desligado](capturas/01-dependency-graph-off.jpg)
 
-**Captura 2 — Dependabot e CodeQL:** opções de atualização do Dependabot desligadas e CodeQL aguardando `Set up`.
+**Captura 2 — estado histórico anterior ao PR #10:** opções de atualização do Dependabot desligadas e CodeQL aguardando `Set up`. A configuração atual do CodeQL está ativa via Default setup, conforme o resultado do PR #10 registrado adiante.
 
 ![Settings: Dependabot desligado e CodeQL sem configuração](capturas/04-dependabot-codeql-config.jpg)
 
@@ -63,14 +63,12 @@ Fluxo de administração, quando a proprietária decidir iniciar este teste:
 4. Teste **version updates** somente quando decidir adicionar `.github/dependabot.yml`; selecione ecossistema Maven, diretório `/` e agenda apropriada.
 5. Compare o PR automático com o PR comum: versão alterada, motivo, checks, logs e resultado de merge. O administrador não deve habilitar as etapas seguintes sem decidir que esta observação terminou.
 
-### C. Code Scanning com CodeQL — etapa separada
+### C. Code Scanning com CodeQL — habilitado para o teste atual
 
-1. Abra **Settings > Advanced Security > Code Security > CodeQL analysis > Set up**.
-2. Prefira **Default setup** para este teste inicial. Revise as linguagens que o GitHub detectou e a configuração proposta.
-3. Confirme **Enable CodeQL** somente quando este teste for autorizado.
-4. Aguarde a primeira análise e consulte **Security > Code scanning**.
-5. Em um PR de teste autorizado, confira alertas, arquivo/linha, explicação, severidade e o check de Code Scanning.
-6. Registre que falhar um check só bloqueia merge quando as regras de proteção da branch exigirem esse check.
+1. A mantenedora ativou **Default setup** em **Settings > Advanced Security > Code Security > CodeQL analysis**.
+2. O GitHub identificou linguagens do repositório e executou a análise no PR #10.
+3. O resultado deste exercício é um alerta High de SQL Injection com arquivo e linha; consulte o guia do usuário para ver capturas e entender o que o autor e revisor do PR devem fazer.
+4. Um alerta no painel e o status do check são coisas diferentes. Só há bloqueio de merge quando as regras de proteção da branch exigem o check apropriado.
 
 Default setup é uma configuração do Code Scanning gerenciada pelo GitHub. Não é necessário acrescentar manualmente uma segunda workflow de CodeQL para esse caminho.
 
@@ -116,6 +114,16 @@ Quando Dependabot, CodeQL e Secret Scanning tiverem sido testados e registrados,
 
 Se um push for bloqueado por uma possível credencial, não contorne o bloqueio com um segredo real. Remova o valor do código/histórico conforme o caso, use um armazenamento seguro para credenciais e siga o procedimento da organização.
 
+### Dispensa de alertas de Code Scanning
+
+Se a pessoa tem permissão de escrita no repositório, a interface normalmente oferece **Dismiss alert**, independentemente de o alerta ser High ou Critical. A severidade informa a gravidade; ela não concede nem remove permissões. No alerta High observado no PR #10, o botão abriu um formulário que exige uma razão. As opções mostradas foram `False positive`, `Used in tests`, `Won't fix` e `Mitigated`. Nenhuma foi selecionada e o alerta continua aberto.
+
+Dispensar fecha o alerta no painel, registra a razão e não corrige o código. Para uma vulnerabilidade real, a ação esperada é corrigir o código e aguardar nova análise. Configure **delegated alert dismissal** somente se a política exigir controle adicional: pessoas com acesso de escrita passam a solicitar a dispensa, e proprietários da organização/security managers podem aprovar ou rejeitar. A opção delegada não foi ativada neste exercício.
+
+![Alerta High aberto no PR #10, com a localização em ProductRepository.java](capturas/pr10-alert-detail-final.jpg)
+
+![Formulário de dispensa com razões disponíveis; nenhuma foi enviada](capturas/pr10-dismiss-reasons.jpg)
+
 ## 4. Sequência e registro de aprendizado
 
 1. Aprender o workflow de Actions já ativo.
@@ -133,6 +141,8 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 - [Configurar atualizações de versão do Dependabot](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates)
 - [Configurar Code Scanning default setup](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configure-code-scanning)
 - [Tipos de configuração do Code Scanning](https://docs.github.com/en/code-security/concepts/code-scanning/setup-types)
+- [Resolver alertas de Code Scanning e dispensá-los](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/resolve-alerts)
+- [Aprovação delegada de dispensas](https://docs.github.com/en/code-security/concepts/security-at-scale/delegated-alert-dismissal)
 - [Habilitar Secret Scanning](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/detect-secret-leaks/enable-secret-scanning)
 - [Habilitar Push protection](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/prevent-future-leaks/enable-push-protection)
 - [Quickstart de segurança do GitHub](https://docs.github.com/en/code-security/getting-started/quickstart-for-securing-your-repository)
@@ -142,5 +152,5 @@ Cada ativação é uma decisão separada da proprietária. Registre para cada se
 - O PR #7 remove a execução do Sonar do workflow e mantém Maven `verify`.
 - O workflow usa os eventos `push` para `main` e `pull_request` para `main`.
 - Após a atualização deste guia, a execução [#21 do Actions](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38094010130) passou em 27 segundos no evento `pull_request`.
-- As ferramentas de GHAS continuam desligadas conforme o escopo acordado.
+- Code Scanning/CodeQL está ativo via Default setup para o exercício; Dependabot e Secret Protection continuam desligados conforme o escopo.
 - A proprietária revisa e aprova PRs. O assistente não aprova nem mescla.

@@ -180,6 +180,24 @@ O CodeQL concluiu as análises e registrou **um alerta High**, “Query built fr
 
 Nesta execução, os checks do CodeQL e do Maven terminaram verdes, embora o Code Scanning tenha registrado o alerta. O PR também aparece como apto a merge. Isso demonstra, neste repositório, que o alerta visível não bloqueou o merge por si só; o estado do alerta, o resultado do check e as regras de proteção são sinais separados. **Não aprove nem faça merge do PR #10:** a vulnerabilidade é intencional e o PR aguarda revisão da mantenedora.
 
+#### Um alerta High ou Critical pode ser dispensado?
+
+**A severidade High ou Critical, sozinha, não impede a ação “Dismiss alert”.** No GitHub, quem tem permissão de escrita no repositório pode dispensar um alerta de Code Scanning, a menos que a organização tenha ativado a aprovação delegada. Na tela atual do PR #10, o alerta é High e a opção aparece; antes de confirmar, o GitHub exige uma razão. Não selecionamos uma razão nem dispensamos o alerta.
+
+As razões exibidas para este alerta são **False positive**, **Used in tests**, **Won't fix** e **Mitigated**. Escolha uma apenas se ela descreve de fato o caso e registre o contexto. “Dismiss” fecha/arquiva o alerta para a análise, registra a razão e o remove da contagem de alertas atuais; não altera o código e não elimina a vulnerabilidade. A documentação do GitHub informa que o descarte vale para todas as branches e que uma nova análise não reabre o mesmo alerta para o mesmo código. Por isso, uma vulnerabilidade real deve ser corrigida no código, não dispensada para fazer o aviso sumir.
+
+No PR de laboratório, a SQL continua concatenando a entrada recebida. O alerta High deve permanecer aberto até a correção da consulta; a tela de dismiss serve para demonstrar o fluxo, não para aprovar ou aceitar o risco.
+
+![Lista de Code Scanning: um alerta aberto associado à branch do PR #10](capturas/pr10-alert-list.jpg)
+
+![PR #10: alerta High localizado em ProductRepository.java:42](capturas/pr10-alert-detail-final.jpg)
+
+![Formulário de dismiss: quatro razões disponíveis; nenhuma foi selecionada ou enviada](capturas/pr10-dismiss-reasons.jpg)
+
+![PR #10: CodeQL e Maven concluídos com sucesso na revisão mais recente](capturas/pr10-checks-final.jpg)
+
+O botão de dismiss é diferente de um bloqueio de merge. Se a equipe quiser restringir quem pode dispensar alertas, a mantenedora pode habilitar **delegated alert dismissal**. Nesse modelo, pessoas com acesso de escrita solicitam o descarte; proprietários da organização e security managers analisam a solicitação. A regra e o check exigido pela branch continuam sendo configurados separadamente.
+
 ### Evidência anterior com Code Scanning ativo
 
 Para comparar com o caso atual, o PR histórico [#7](https://github.com/aeroschmidt/scanner-loja-instrumentos/pull/7) contém a captura de uma análise do CodeQL que apontou um alerta **High** na chamada de `jdbcTemplate.query`, na linha que envia a consulta concatenada. A origem do dado não confiável aparece na montagem da SQL logo acima. A alteração foi posteriormente corrigida antes de o PR #7 ser integrado; a captura documenta a revisão histórica, não o estado atual da branch principal.
