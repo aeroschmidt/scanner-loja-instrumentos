@@ -27,13 +27,13 @@ O primeiro comando compila o código e executa os testes. O segundo inicia a apl
 
 ## GitHub Actions e segurança do repositório
 
-O workflow em `.github/workflows/build.yml` roda em pushes para `main` e em pull requests destinados a `main`. Em um runner hospedado pelo GitHub, configura o Java 21 e executa `./mvnw verify` para compilar e testar. A análise do CodeQL é configurada separadamente nas opções de segurança do repositório.
+O workflow em `.github/workflows/build.yml` roda em pushes para `main` e em pull requests destinados a `main`. Em um runner hospedado pelo GitHub, configura o Java 21 e executa `./mvnw verify` para compilar e testar. O CodeQL usa Advanced Setup no workflow `.github/workflows/codeql.yml`, versionado no repositório. Ele analisa pushes e PRs destinados a `main` e também roda semanalmente.
 
 O Actions reage aos eventos e organiza jobs e steps; o Maven compila e executa os testes. Em um PR, consulte **Checks** para ver o resultado e abra os logs de um step que falhou.
 
 ### Estado das ferramentas de segurança
 
-- **Code Scanning / CodeQL:** habilitado por Default setup no repositório.
+- **Code Scanning / CodeQL:** habilitado por Advanced Setup; a configuração fica em `.github/workflows/codeql.yml`.
 - **Dependabot:** permanece desligado até que a mantenedora escolha iniciar esse teste.
 - **Secret Protection:** permanece desligado até que a mantenedora escolha iniciar esse teste.
 - **GitHub Actions:** executa o build e os testes Maven descritos acima.

@@ -39,7 +39,7 @@ Cada commit novo no PR pode iniciar uma execução. O GitHub roda vários workfl
 
 ### Code Scanning
 
-Quando uma análise de código está configurada para o PR, ela pode exibir alertas e anotações com a regra, severidade, arquivo e trecho relacionado. Abra o alerta para entender o caminho do dado, o risco e a correção sugerida; depois confira o contexto completo no diff.
+Quando uma análise de código está configurada para o PR, ela pode exibir alertas e anotações com a regra, severidade, arquivo e trecho relacionado. No Advanced setup, o administrador mantém um workflow CodeQL versionado; os eventos e as linguagens analisadas dependem do YAML. Abra o alerta para entender o caminho do dado, o risco e a correção sugerida; depois confira o contexto completo no diff.
 
 Um alerta não significa automaticamente que o merge será bloqueado. Isso depende das regras de proteção e da configuração do check. Da mesma forma, nenhum alerta pode significar que a análise não encontrou problemas que reconhece, que não foi executada ou que não cobre aquele caso. Considere a linguagem, o tipo de análise e o código efetivamente analisado.
 
@@ -220,5 +220,11 @@ O CodeQL pode apontar arquivo, localização e regra quando a análise executada
 - **PR #8, documentação sem Code Scanning:** o workflow de build/teste ficou verde e o diff foi pequeno. Isso não mostra uma análise de segurança do código.
 - **PR #9, SQL Injection com Code Scanning desligado:** o workflow ficou verde e o diff mostra o caminho inseguro; não há check do CodeQL. Isso não significa que o código está seguro nem que passou por análise estática.
 - **PR #7 histórico, CodeQL ativo:** há um alerta High localizado na chamada SQL e um job Maven que falhou nos testes. Isso não significa que todo alerta falha o build ou bloqueia o merge.
+
+### O que esperar do CodeQL Advanced setup
+
+Um workflow CodeQL pode executar em PRs destinados à branch configurada, em pushes para essa branch e em uma agenda periódica. Na lista de Actions, o usuário verá uma execução separada de **CodeQL Advanced**, com uma análise por linguagem; isso não substitui o workflow de build e testes. O workflow e o check podem concluir com sucesso e ainda assim publicar alertas. Abra o alerta em **Security** para ver a regra, severidade e localização; resultado verde significa que a análise terminou, não que o código não tem achados.
+
+Nesta configuração, o workflow `.github/workflows/codeql.yml` está na branch padrão e usa PR/push para `main` mais um agendamento semanal. A execução inicial na `main` terminou com sucesso: [CodeQL Advanced #1](https://github.com/aeroschmidt/scanner-loja-instrumentos/actions/runs/38104871050). Esse run verificou a configuração base; a execução associada ao PR mostra a análise da branch. O PR #10 contém SQL Injection intencional e aguarda a decisão da mantenedora. A aprovação e o merge continuam humanos.
 
 Os screenshots preservam o contexto de cada tela. Ao registrar uma nova ferramenta ou alteração de configuração, capture também o estado anterior, o diff, os checks e a localização do alerta ou falha; identifique se a imagem é atual ou histórica e não exponha credenciais ou dados reais.
