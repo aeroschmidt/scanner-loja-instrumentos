@@ -1,13 +1,14 @@
 from pathlib import Path
 import re
+import sys
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
 
 root = Path(__file__).parent
-source = root / "guia-github-actions-e-seguranca.md"
-target = root / "guia-github-actions-e-seguranca.docx"
+source = root / (sys.argv[1] if len(sys.argv) > 1 else "guia-github-actions-e-seguranca.md")
+target = source.with_suffix(".docx")
 lines = source.read_text(encoding="utf-8").splitlines()
 doc = Document()
 sec = doc.sections[0]
@@ -130,7 +131,7 @@ while i < len(lines):
         add_runs(p, line)
     i += 1
 
-doc.core_properties.title = "GitHub Actions e segurança do repositório"
+doc.core_properties.title = source.stem.replace("-", " ").title()
 doc.core_properties.subject = "Passos para administradores e participantes de PRs"
 doc.core_properties.author = "Som & Corda"
 doc.save(target)
